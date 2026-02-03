@@ -261,7 +261,7 @@ const SistemaOrcamentoMarmore = () => {
   const gerarEtiquetasPDF = async () => {
     // Carregar jsPDF dinamicamente
     return new Promise((resolve) => {
-      if (window.jsPDF) {
+      if (window.jspdf) {
         gerarPDFComJsPDF();
         resolve();
         return;
@@ -348,30 +348,27 @@ const SistemaOrcamentoMarmore = () => {
       pdf.text(`LARG: ${larg}`, boxX + 2, 36);
       
       // ===== CENTRO: DESENHO DA PEÇA =====
-      // Calcular área disponível para o desenho
       const desenhoMaxW = 45;
       const desenhoMaxH = 35;
       
-      // Calcular escala proporcional
       const escalaW = desenhoMaxW / peca.comprimento;
       const escalaH = desenhoMaxH / peca.altura;
-      const escala = Math.min(escalaW, escalaH) * 0.9; // 90% para dar margem
+      const escala = Math.min(escalaW, escalaH) * 0.9;
       
       const desenhoW = peca.comprimento * escala;
       const desenhoH = peca.altura * escala;
       
-      // Centralizar desenho
       const desenhoX = 10 + (desenhoMaxW - desenhoW) / 2;
       const desenhoY = 26 + (desenhoMaxH - desenhoH) / 2;
       
-      // Desenhar cota horizontal (em cima)
+      // Desenhar cota horizontal
       pdf.setFontSize(8);
       pdf.setTextColor(0, 0, 0);
       pdf.setFont('helvetica', 'normal');
       const cotaX = desenhoX + desenhoW/2 - String(comp).length * 1.2;
       pdf.text(String(comp), cotaX, desenhoY - 2);
       
-      // Desenhar cota vertical (lateral esquerda)
+      // Desenhar cota vertical
       const cotaY = desenhoY + desenhoH/2 + 2;
       pdf.text(String(larg), desenhoX - 7, cotaY);
       
@@ -1993,10 +1990,9 @@ const SistemaOrcamentoMarmore = () => {
                     type="text"
                     value={orcamentoAtual.nome}
                     onChange={(e) => setOrcamentoAtual({ ...orcamentoAtual, nome: e.target.value })}
-                    className="text-2xl font-semibold text-gray-800 border-b-2 border-transparent hover:border-blue-300 focus:border-blue-500 focus:outline-none flex-1 min-w-0"
+                    className="text-2xl font-semibold text-gray-800 border-b-2 border-transparent hover:border-blue-300 focus:border-blue-500 focus:outline-none w-full"
                     placeholder="Nome do orçamento"
                   />
-                  <Edit2 size={20} className="text-gray-400 flex-shrink-0" title="Clique no nome para editar" />
                 </div>
                 <p className="text-sm text-gray-500 mb-3">Criado em: {orcamentoAtual.data}</p>
                 <div className="flex flex-wrap gap-2">
@@ -2038,15 +2034,6 @@ const SistemaOrcamentoMarmore = () => {
                   >
                     <Save size={20} />
                     Salvar Orçamento
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTela('lista');
-                      setOrcamentoAtual(null);
-                    }}
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    <X size={24} />
                   </button>
                 </div>
               </div>
@@ -4060,6 +4047,7 @@ const PlanoCorteChapa = ({ chapa, numero, onMoverPeca, onMoverPecaNaChapa, onGir
 };
 
 
+
 // ============================================
 // ⚡ MUDE A SENHA AQUI ⚡
 // ============================================
@@ -4257,4 +4245,3 @@ const App = () => {
 // Renderizar no DOM
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(React.createElement(App));
-
