@@ -2874,7 +2874,6 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
       )}
     </div>
   );
-};
 
 
 // Componente de seleção de lados via mini-prévia clicável
