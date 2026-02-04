@@ -2659,7 +2659,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
               </div>
               
               {/* Preview Unificado de Acabamentos */}
-              {((novaPeca.acabamentos.esquadria.ativo || 
+              {(novaPeca.acabamentos.esquadria.ativo || 
                 novaPeca.acabamentos.boleado.ativo || 
                 novaPeca.acabamentos.polimento.ativo || 
                 novaPeca.acabamentos.canal.ativo) && (
@@ -2670,97 +2670,34 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                     {novaPeca.acabamentos.esquadria.ativo && (
                       <div>
                         <p className="text-xs font-semibold text-red-600 mb-2">🔴 Esquadria</p>
-                        <SeletorLadosAcabamento
-                          peca={novaPeca}
-                          tipoAcabamento="esquadria"
-                          cor="#ef4444"
-                          onChange={(novosLados) => {
-                            setNovaPeca({
-                              ...novaPeca,
-                              acabamentos: {
-                                ...novaPeca.acabamentos,
-                                esquadria: {
-                                  ...novaPeca.acabamentos.esquadria,
-                                  lados: novosLados
-                                }
-                              }
-                            });
-                          }}
-                        />
+                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
                       </div>
                     )}
 
                     {novaPeca.acabamentos.boleado.ativo && (
                       <div>
                         <p className="text-xs font-semibold text-yellow-600 mb-2">🟡 Boleado</p>
-                        <SeletorLadosAcabamento
-                          peca={novaPeca}
-                          tipoAcabamento="boleado"
-                          cor="#eab308"
-                          onChange={(novosLados) => {
-                            setNovaPeca({
-                              ...novaPeca,
-                              acabamentos: {
-                                ...novaPeca.acabamentos,
-                                boleado: {
-                                  ...novaPeca.acabamentos.boleado,
-                                  lados: novosLados
-                                }
-                              }
-                            });
-                          }}
-                        />
+                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
                       </div>
                     )}
 
                     {novaPeca.acabamentos.polimento.ativo && (
                       <div>
                         <p className="text-xs font-semibold text-blue-600 mb-2">🔵 Polimento</p>
-                        <SeletorLadosAcabamento
-                          peca={novaPeca}
-                          tipoAcabamento="polimento"
-                          cor="#3b82f6"
-                          onChange={(novosLados) => {
-                            setNovaPeca({
-                              ...novaPeca,
-                              acabamentos: {
-                                ...novaPeca.acabamentos,
-                                polimento: {
-                                  ...novaPeca.acabamentos.polimento,
-                                  lados: novosLados
-                                }
-                              }
-                            });
-                          }}
-                        />
+                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
                       </div>
                     )}
 
                     {novaPeca.acabamentos.canal.ativo && (
                       <div>
                         <p className="text-xs font-semibold text-orange-600 mb-2">🟠 Canal</p>
-                        <SeletorLadosAcabamento
-                          peca={novaPeca}
-                          tipoAcabamento="canal"
-                          cor="#f59e0b"
-                          onChange={(novosLados) => {
-                            setNovaPeca({
-                              ...novaPeca,
-                              acabamentos: {
-                                ...novaPeca.acabamentos,
-                                canal: {
-                                  ...novaPeca.acabamentos.canal,
-                                  lados: novosLados
-                                }
-                              }
-                            });
-                          }}
-                        />
+                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
                       </div>
                     )}
                   </div>
                 </div>
-              ))}
+              )}</div>
+              }
 
               <h5 className="font-medium text-sm mb-2">Recortes (opcional)</h5>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
@@ -2875,6 +2812,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
   );
 
 
+// Componente de seleção de lados via mini-prévia clicável
 // Componente de Pré-visualização de Acabamentos
 const PreviewAcabamentos = ({ peca, mostrarSempre = false, mini = false }) => {
   const canvasRef = useRef(null);
