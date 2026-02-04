@@ -2659,7 +2659,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
               </div>
               
               {/* Preview Unificado de Acabamentos */}
-              {(novaPeca.acabamentos.esquadria.ativo || 
+              {((novaPeca.acabamentos.esquadria.ativo || 
                 novaPeca.acabamentos.boleado.ativo || 
                 novaPeca.acabamentos.polimento.ativo || 
                 novaPeca.acabamentos.canal.ativo) && (
@@ -2761,6 +2761,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                   </div>
                 </div>
               )}</div>
+              </div>
               )}
 
               <h5 className="font-medium text-sm mb-2">Recortes (opcional)</h5>
@@ -2875,200 +2876,6 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
     </div>
   );
 
-
-// Componente de seleção de lados via mini-prévia clicável
-const SeletorLadosAcabamento = ({ peca, tipoAcabamento, cor, onChange }) => {
-  const canvasRef = useRef(null);
-  const [hoveredSide, setHoveredSide] = useState(null);
-
-  useEffect(() => {
-    desenhar();
-  }, [peca, hoveredSide]);
-
-  const desenhar = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !peca.comprimento || !peca.altura) return;
-
-    const ctx = canvas.getContext('2d');
-    const largura = parseFloat(peca.comprimento) || 600;
-    const altura = parseFloat(peca.altura) || 400;
-
-    const canvasW = 140;
-    const canvasH = 110;
-    const margemTop = 20;
-    const margemLeft = 20;
-    const areaW = canvasW - margemLeft - 12;
-    const areaH = canvasH - margemTop - 12;
-
-    const escalaX = areaW / largura;
-    const escalaY = areaH / altura;
-    const escala = Math.min(escalaX, escalaY);
-
-    const w = largura * escala;
-    const h = altura * escala;
-    const offsetX = margemLeft + (areaW - w) / 2;
-    const offsetY = margemTop + (areaH - h) / 2;
-
-    canvas.width = canvasW;
-    canvas.height = canvasH;
-
-    // Fundo
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(0, 0, canvasW, canvasH);
-
-    // Peça
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(offsetX, offsetY, w, h);
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(offsetX, offsetY, w, h);
-
-    const lados = peca.acabamentos[tipoAcabamento]?.lados || {};
-    
-    // Converter hex para rgb
-    const hexToRgb = (hex) => {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return [r, g, b];
-    };
-    const [r, g, b] = hexToRgb(cor);
-
-    // Desenhar lados clicáveis com highlight
-    const espessura = 8;
-    
-    // Superior
-    const supAtivo = lados.superior;
-    const supHover = hoveredSide === 'superior';
-    ctx.fillStyle = supAtivo ? cor : (supHover ? `rgba(${r},${g},${b},0.3)` : 'rgba(200,200,200,0.5)');
-    ctx.fillRect(offsetX, offsetY - espessura, w, espessura);
-    
-    // Inferior
-    const infAtivo = lados.inferior;
-    const infHover = hoveredSide === 'inferior';
-    ctx.fillStyle = infAtivo ? cor : (infHover ? `rgba(${r},${g},${b},0.3)` : 'rgba(200,200,200,0.5)');
-    ctx.fillRect(offsetX, offsetY + h, w, espessura);
-    
-    // Esquerda
-    const esqAtivo = lados.esquerda;
-    const esqHover = hoveredSide === 'esquerda';
-    ctx.fillStyle = esqAtivo ? cor : (esqHover ? `rgba(${r},${g},${b},0.3)` : 'rgba(200,200,200,0.5)');
-    ctx.fillRect(offsetX - espessura, offsetY, espessura, h);
-    
-    // Direita
-    const dirAtivo = lados.direita;
-    const dirHover = hoveredSide === 'direita';
-    ctx.fillStyle = dirAtivo ? cor : (dirHover ? `rgba(${r},${g},${b},0.3)` : 'rgba(200,200,200,0.5)');
-    ctx.fillRect(offsetX + w, offsetY, espessura, h);
-
-    // Labels
-    ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 9px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Superior', offsetX + w/2, offsetY - espessura - 2);
-    ctx.fillText('Inferior', offsetX + w/2, offsetY + h + espessura + 10);
-    
-    ctx.save();
-    ctx.translate(offsetX - espessura - 2, offsetY + h/2);
-    ctx.rotate(-Math.PI/2);
-    ctx.fillText('Esquerda', 0, 0);
-    ctx.restore();
-    
-    ctx.save();
-    ctx.translate(offsetX + w + espessura + 2, offsetY + h/2);
-    ctx.rotate(Math.PI/2);
-    ctx.fillText('Direita', 0, 0);
-    ctx.restore();
-  };
-
-  const handleClick = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const largura = parseFloat(peca.comprimento) || 600;
-    const altura = parseFloat(peca.altura) || 400;
-    const canvasW = 140;
-    const canvasH = 110;
-    const margemTop = 20;
-    const margemLeft = 20;
-    const areaW = canvasW - margemLeft - 12;
-    const areaH = canvasH - margemTop - 12;
-    const escalaX = areaW / largura;
-    const escalaY = areaH / altura;
-    const escala = Math.min(escalaX, escalaY);
-    const w = largura * escala;
-    const h = altura * escala;
-    const offsetX = margemLeft + (areaW - w) / 2;
-    const offsetY = margemTop + (areaH - h) / 2;
-    const espessura = 8;
-
-    const lados = peca.acabamentos[tipoAcabamento]?.lados || {};
-    let novoLado = null;
-
-    if (y >= offsetY - espessura && y < offsetY && x >= offsetX && x < offsetX + w) {
-      novoLado = 'superior';
-    } else if (y >= offsetY + h && y < offsetY + h + espessura && x >= offsetX && x < offsetX + w) {
-      novoLado = 'inferior';
-    } else if (x >= offsetX - espessura && x < offsetX && y >= offsetY && y < offsetY + h) {
-      novoLado = 'esquerda';
-    } else if (x >= offsetX + w && x < offsetX + w + espessura && y >= offsetY && y < offsetY + h) {
-      novoLado = 'direita';
-    }
-
-    if (novoLado) {
-      onChange({
-        ...lados,
-        [novoLado]: !lados[novoLado]
-      });
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const largura = parseFloat(peca.comprimento) || 600;
-    const altura = parseFloat(peca.altura) || 400;
-    const canvasW = 140;
-    const canvasH = 110;
-    const margemTop = 20;
-    const margemLeft = 20;
-    const areaW = canvasW - margemLeft - 12;
-    const areaH = canvasH - margemTop - 12;
-    const escalaX = areaW / largura;
-    const escalaY = areaH / altura;
-    const escala = Math.min(escalaX, escalaY);
-    const w = largura * escala;
-    const h = altura * escala;
-    const offsetX = margemLeft + (areaW - w) / 2;
-    const offsetY = margemTop + (areaH - h) / 2;
-    const espessura = 8;
-
-    let hover = null;
-    if (y >= offsetY - espessura && y < offsetY && x >= offsetX && x < offsetX + w) hover = 'superior';
-    else if (y >= offsetY + h && y < offsetY + h + espessura && x >= offsetX && x < offsetX + w) hover = 'inferior';
-    else if (x >= offsetX - espessura && x < offsetX && y >= offsetY && y < offsetY + h) hover = 'esquerda';
-    else if (x >= offsetX + w && x < offsetX + w + espessura && y >= offsetY && y < offsetY + h) hover = 'direita';
-
-    setHoveredSide(hover);
-  };
-
-  return (
-    <div className="flex justify-center">
-      <canvas
-        ref={canvasRef}
-        onClick={handleClick}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHoveredSide(null)}
-        className="cursor-pointer border-2 border-gray-300 rounded"
-      />
-    </div>
-  );
-};
 
 // Componente de Pré-visualização de Acabamentos
 const PreviewAcabamentos = ({ peca, mostrarSempre = false, mini = false }) => {
