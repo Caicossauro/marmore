@@ -2760,8 +2760,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                     )}
                   </div>
                 </div>
-              )}</div>
-              </div>
+              )}
               )}
 
               <h5 className="font-medium text-sm mb-2">Recortes (opcional)</h5>
