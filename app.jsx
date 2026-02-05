@@ -781,17 +781,17 @@ const SistemaOrcamentoMarmore = () => {
 
     orcamentoAtual.ambientes.forEach(ambiente => {
       ambiente.pecas.forEach(peca => {
-        // Acabamentos
-        if (peca.esquadria) totalAcabamentos += (peca.esquadria / 1000) * 35;
-        if (peca.boleado) totalAcabamentos += (peca.boleado / 1000) * 15;
-        if (peca.polimento) totalAcabamentos += (peca.polimento / 1000) * 22;
+        // Acabamentos (usando preços configuráveis)
+        if (peca.esquadria) totalAcabamentos += (peca.esquadria / 1000) * precos.esquadria;
+        if (peca.boleado) totalAcabamentos += (peca.boleado / 1000) * precos.boleado;
+        if (peca.polimento) totalAcabamentos += (peca.polimento / 1000) * precos.polimento;
 
-        // Recortes
-        if (peca.cuba) totalRecortes += peca.cuba * 100;
-        if (peca.cubaEsculpida) totalRecortes += peca.cubaEsculpida * 630;
-        if (peca.cooktop) totalRecortes += peca.cooktop * 150;
-        if (peca.recorte) totalRecortes += peca.recorte * 60;
-        if (peca.pes) totalRecortes += peca.pes * 200;
+        // Recortes (usando preços configuráveis)
+        if (peca.cuba) totalRecortes += peca.cuba * precos.pia;
+        if (peca.cubaEsculpida) totalRecortes += peca.cubaEsculpida * precos.cubaEsculpida;
+        if (peca.cooktop) totalRecortes += peca.cooktop * precos.cooktop;
+        if (peca.recorte) totalRecortes += peca.recorte * precos.recorte;
+        if (peca.pes) totalRecortes += peca.pes * precos.pes;
       });
     });
 
@@ -831,17 +831,17 @@ const SistemaOrcamentoMarmore = () => {
 
     orc.ambientes.forEach(ambiente => {
       ambiente.pecas.forEach(peca => {
-        // Acabamentos
-        if (peca.esquadria) totalAcabamentos += (peca.esquadria / 1000) * 35;
-        if (peca.boleado) totalAcabamentos += (peca.boleado / 1000) * 15;
-        if (peca.polimento) totalAcabamentos += (peca.polimento / 1000) * 22;
+        // Acabamentos (usando preços configuráveis)
+        if (peca.esquadria) totalAcabamentos += (peca.esquadria / 1000) * precos.esquadria;
+        if (peca.boleado) totalAcabamentos += (peca.boleado / 1000) * precos.boleado;
+        if (peca.polimento) totalAcabamentos += (peca.polimento / 1000) * precos.polimento;
 
-        // Recortes
-        if (peca.cuba) totalRecortes += peca.cuba * 100;
-        if (peca.cubaEsculpida) totalRecortes += peca.cubaEsculpida * 630;
-        if (peca.cooktop) totalRecortes += peca.cooktop * 150;
-        if (peca.recorte) totalRecortes += peca.recorte * 60;
-        if (peca.pes) totalRecortes += peca.pes * 200;
+        // Recortes (usando preços configuráveis)
+        if (peca.cuba) totalRecortes += peca.cuba * precos.pia;
+        if (peca.cubaEsculpida) totalRecortes += peca.cubaEsculpida * precos.cubaEsculpida;
+        if (peca.cooktop) totalRecortes += peca.cooktop * precos.cooktop;
+        if (peca.recorte) totalRecortes += peca.recorte * precos.recorte;
+        if (peca.pes) totalRecortes += peca.pes * precos.pes;
       });
     });
 
@@ -2351,6 +2351,7 @@ const SistemaOrcamentoMarmore = () => {
                     key={ambiente.id}
                     ambiente={ambiente}
                     materiais={materiais}
+                    precos={precos}
                     onAdicionarPeca={(peca) => adicionarPeca(ambiente.id, peca)}
                     onExcluirPeca={(pecaId) => excluirPeca(ambiente.id, pecaId)}
                     onVisualizarPeca={(peca) => setMostrandoDetalhePeca(peca)}
@@ -2363,7 +2364,7 @@ const SistemaOrcamentoMarmore = () => {
             </div>
 
             {/* Resumo do Orçamento */}
-            <ResumoOrcamento orcamentoAtual={orcamentoAtual} materiais={materiais} />
+            <ResumoOrcamento orcamentoAtual={orcamentoAtual} materiais={materiais} precos={precos} />
           </div>
         )}
 
@@ -2418,7 +2419,7 @@ const SistemaOrcamentoMarmore = () => {
 };
 
 // Componente de Card de Ambiente
-const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onVisualizarPeca, onPedirConfirmacaoExclusao }) => {
+const AmbienteCard = ({ ambiente, materiais, precos, onAdicionarPeca, onExcluirPeca, onVisualizarPeca, onPedirConfirmacaoExclusao }) => {
   const [expandido, setExpandido] = useState(false);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [novaPeca, setNovaPeca] = useState({
@@ -2641,7 +2642,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                     }}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm">Esquadria (R$ 35/m)</span>
+                  <span className="text-sm">Esquadria (R$ {precos.esquadria}/m)</span>
                 </label>
                 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -2659,7 +2660,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                     }}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm">Boleado (R$ 15/m)</span>
+                  <span className="text-sm">Boleado (R$ {precos.boleado}/m)</span>
                 </label>
                 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -2677,7 +2678,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                     }}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm">Polimento (R$ 22/m)</span>
+                  <span className="text-sm">Polimento (R$ {precos.polimento}/m)</span>
                 </label>
                 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -2695,7 +2696,7 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                     }}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm">Canal (R$ 15/m)</span>
+                  <span className="text-sm">Canal (R$ {precos.canal}/m)</span>
                 </label>
               </div>
               
@@ -2705,36 +2706,124 @@ const AmbienteCard = ({ ambiente, materiais, onAdicionarPeca, onExcluirPeca, onV
                 novaPeca.acabamentos.polimento.ativo || 
                 novaPeca.acabamentos.canal.ativo) && (
                 <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <h6 className="font-semibold text-sm mb-2">📐 Selecione os lados para cada acabamento:</h6>
+                  <h6 className="font-semibold text-sm mb-3">📐 Selecione os lados para cada acabamento:</h6>
                   
-                  <div className="space-y-3">
-                    {novaPeca.acabamentos.esquadria.ativo && (
-                      <div>
-                        <p className="text-xs font-semibold text-red-600 mb-2">🔴 Esquadria</p>
-                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
-                      </div>
-                    )}
+                  <div className="space-y-4">
+                    {[
+                      { tipo: 'esquadria', label: 'Esquadria', cor: 'red', emoji: '🔴' },
+                      { tipo: 'boleado', label: 'Boleado', cor: 'yellow', emoji: '🟡' },
+                      { tipo: 'polimento', label: 'Polimento', cor: 'blue', emoji: '🔵' },
+                      { tipo: 'canal', label: 'Canal', cor: 'orange', emoji: '🟠' }
+                    ].filter(item => novaPeca.acabamentos[item.tipo].ativo).map(item => {
+                      const coresBg = { red: 'bg-red-100 border-red-400 text-red-700', yellow: 'bg-yellow-100 border-yellow-400 text-yellow-700', blue: 'bg-blue-100 border-blue-400 text-blue-700', orange: 'bg-orange-100 border-orange-400 text-orange-700' };
+                      const coresAtivo = { red: 'bg-red-500 text-white border-red-600', yellow: 'bg-yellow-500 text-white border-yellow-600', blue: 'bg-blue-500 text-white border-blue-600', orange: 'bg-orange-500 text-white border-orange-600' };
+                      const coresInativo = { red: 'bg-white text-red-400 border-red-200 hover:bg-red-50', yellow: 'bg-white text-yellow-500 border-yellow-200 hover:bg-yellow-50', blue: 'bg-white text-blue-400 border-blue-200 hover:bg-blue-50', orange: 'bg-white text-orange-400 border-orange-200 hover:bg-orange-50' };
+                      
+                      const toggleLado = (lado) => {
+                        const novosAcabamentos = { ...novaPeca.acabamentos };
+                        novosAcabamentos[item.tipo] = {
+                          ...novosAcabamentos[item.tipo],
+                          lados: {
+                            ...novosAcabamentos[item.tipo].lados,
+                            [lado]: !novosAcabamentos[item.tipo].lados[lado]
+                          }
+                        };
+                        setNovaPeca({ ...novaPeca, acabamentos: novosAcabamentos });
+                      };
 
-                    {novaPeca.acabamentos.boleado.ativo && (
-                      <div>
-                        <p className="text-xs font-semibold text-yellow-600 mb-2">🟡 Boleado</p>
-                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
-                      </div>
-                    )}
+                      const lados = novaPeca.acabamentos[item.tipo].lados;
+                      const ladosSelecionados = Object.keys(lados).filter(l => lados[l]).length;
 
-                    {novaPeca.acabamentos.polimento.ativo && (
-                      <div>
-                        <p className="text-xs font-semibold text-blue-600 mb-2">🔵 Polimento</p>
-                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
-                      </div>
-                    )}
+                      return (
+                        <div key={item.tipo} className={`rounded-lg p-3 border ${coresBg[item.cor]}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold">{item.emoji} {item.label}</p>
+                            <span className="text-xs opacity-70">{ladosSelecionados} lado(s)</span>
+                          </div>
+                          
+                          {/* Seletor visual com quadrado representando a peça */}
+                          <div className="flex items-center justify-center">
+                            <div className="relative" style={{ width: '180px', height: '120px' }}>
+                              {/* Botão SUPERIOR */}
+                              <button
+                                type="button"
+                                onClick={() => toggleLado('superior')}
+                                className={`absolute top-0 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold rounded-t-lg border-2 transition-all ${lados.superior ? coresAtivo[item.cor] : coresInativo[item.cor]}`}
+                                style={{ minWidth: '80px', zIndex: 2 }}
+                              >
+                                Superior
+                              </button>
 
-                    {novaPeca.acabamentos.canal.ativo && (
-                      <div>
-                        <p className="text-xs font-semibold text-orange-600 mb-2">🟠 Canal</p>
-                        <div className="text-xs text-gray-500">Use os botões lateral para selecionar lados</div>
-                      </div>
-                    )}
+                              {/* Botão INFERIOR */}
+                              <button
+                                type="button"
+                                onClick={() => toggleLado('inferior')}
+                                className={`absolute bottom-0 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold rounded-b-lg border-2 transition-all ${lados.inferior ? coresAtivo[item.cor] : coresInativo[item.cor]}`}
+                                style={{ minWidth: '80px', zIndex: 2 }}
+                              >
+                                Inferior
+                              </button>
+
+                              {/* Botão ESQUERDA */}
+                              <button
+                                type="button"
+                                onClick={() => toggleLado('esquerda')}
+                                className={`absolute left-0 top-1/2 -translate-y-1/2 px-1 py-2 text-xs font-bold rounded-l-lg border-2 transition-all ${lados.esquerda ? coresAtivo[item.cor] : coresInativo[item.cor]}`}
+                                style={{ writingMode: 'vertical-lr', textOrientation: 'mixed', zIndex: 2 }}
+                              >
+                                Esq.
+                              </button>
+
+                              {/* Botão DIREITA */}
+                              <button
+                                type="button"
+                                onClick={() => toggleLado('direita')}
+                                className={`absolute right-0 top-1/2 -translate-y-1/2 px-1 py-2 text-xs font-bold rounded-r-lg border-2 transition-all ${lados.direita ? coresAtivo[item.cor] : coresInativo[item.cor]}`}
+                                style={{ writingMode: 'vertical-lr', textOrientation: 'mixed', zIndex: 2 }}
+                              >
+                                Dir.
+                              </button>
+
+                              {/* Quadrado central representando a peça */}
+                              <div 
+                                className="absolute bg-white border-2 border-gray-300 rounded flex items-center justify-center"
+                                style={{ top: '22px', bottom: '22px', left: '26px', right: '26px' }}
+                              >
+                                <span className="text-xs text-gray-400 font-medium">PEÇA</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Botão rápido: Todos os lados */}
+                          <div className="flex justify-center mt-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const novosAcabamentos = { ...novaPeca.acabamentos };
+                                const todosAtivos = lados.superior && lados.inferior && lados.esquerda && lados.direita;
+                                novosAcabamentos[item.tipo] = {
+                                  ...novosAcabamentos[item.tipo],
+                                  lados: {
+                                    superior: !todosAtivos,
+                                    inferior: !todosAtivos,
+                                    esquerda: !todosAtivos,
+                                    direita: !todosAtivos
+                                  }
+                                };
+                                setNovaPeca({ ...novaPeca, acabamentos: novosAcabamentos });
+                              }}
+                              className={`text-xs px-3 py-1 rounded-full border font-semibold transition-all ${
+                                lados.superior && lados.inferior && lados.esquerda && lados.direita
+                                  ? coresAtivo[item.cor]
+                                  : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'
+                              }`}
+                            >
+                              {lados.superior && lados.inferior && lados.esquerda && lados.direita ? '✓ Todos os lados' : 'Selecionar todos'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -3068,8 +3157,8 @@ const PreviewAcabamentos = ({ peca, mostrarSempre = false, mini = false }) => {
     </div>
   );
 };
-const ResumoOrcamento = ({ orcamentoAtual, materiais }) => {
-  const orcamento = calcularOrcamentoComDetalhes(orcamentoAtual, materiais);
+const ResumoOrcamento = ({ orcamentoAtual, materiais, precos }) => {
+  const orcamento = calcularOrcamentoComDetalhes(orcamentoAtual, materiais, precos);
   
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
@@ -3181,7 +3270,7 @@ const ResumoOrcamento = ({ orcamentoAtual, materiais }) => {
 };
 
 // Função auxiliar para calcular orçamento com detalhes
-const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
+const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais, precos) => {
   if (!orcamentoAtual) return { 
     custoChapas: 0,
     vendaChapas: 0,
@@ -3230,7 +3319,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
         const largura = peca.rotacao === 90 ? peca.altura : peca.comprimento;
         const altura = peca.rotacao === 90 ? peca.comprimento : peca.altura;
         
-        // Esquadria - R$ 35/m
+        // Esquadria
         if (peca.acabamentos.esquadria && peca.acabamentos.esquadria.ativo) {
           let totalMm = 0;
           const lados = peca.acabamentos.esquadria.lados;
@@ -3240,7 +3329,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           if (lados.direita) totalMm += altura;
           
           if (totalMm > 0) {
-            const valor = (totalMm / 1000) * 35;
+            const valor = (totalMm / 1000) * precos.esquadria;
             totalAcabamentos += valor;
             detalhesAcabamentos.push({
               tipo: 'Esquadria',
@@ -3251,7 +3340,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           }
         }
         
-        // Boleado - R$ 15/m
+        // Boleado
         if (peca.acabamentos.boleado && peca.acabamentos.boleado.ativo) {
           let totalMm = 0;
           const lados = peca.acabamentos.boleado.lados;
@@ -3261,7 +3350,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           if (lados.direita) totalMm += altura;
           
           if (totalMm > 0) {
-            const valor = (totalMm / 1000) * 15;
+            const valor = (totalMm / 1000) * precos.boleado;
             totalAcabamentos += valor;
             detalhesAcabamentos.push({
               tipo: 'Boleado',
@@ -3272,7 +3361,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           }
         }
         
-        // Polimento - R$ 22/m
+        // Polimento
         if (peca.acabamentos.polimento && peca.acabamentos.polimento.ativo) {
           let totalMm = 0;
           const lados = peca.acabamentos.polimento.lados;
@@ -3282,7 +3371,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           if (lados.direita) totalMm += altura;
           
           if (totalMm > 0) {
-            const valor = (totalMm / 1000) * 22;
+            const valor = (totalMm / 1000) * precos.polimento;
             totalAcabamentos += valor;
             detalhesAcabamentos.push({
               tipo: 'Polimento',
@@ -3293,7 +3382,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           }
         }
         
-        // Canal - R$ 15/m
+        // Canal
         if (peca.acabamentos.canal && peca.acabamentos.canal.ativo) {
           let totalMm = 0;
           const lados = peca.acabamentos.canal.lados;
@@ -3303,7 +3392,7 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
           if (lados.direita) totalMm += altura;
           
           if (totalMm > 0) {
-            const valor = (totalMm / 1000) * 15;
+            const valor = (totalMm / 1000) * precos.canal;
             totalAcabamentos += valor;
             detalhesAcabamentos.push({
               tipo: 'Canal',
@@ -3315,63 +3404,63 @@ const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais) => {
         }
       }
       
-      // Recortes
+      // Recortes (usando preços configuráveis)
       if (peca.cuba && peca.cuba > 0) {
-        const valor = peca.cuba * 100;
+        const valor = peca.cuba * precos.pia;
         totalRecortes += valor;
         detalhesRecortes.push({
           tipo: 'Cuba',
           peca: nomePeca,
           quantidade: peca.cuba,
-          valorUnit: 100,
+          valorUnit: precos.pia,
           valor
         });
       }
       
       if (peca.cubaEsculpida && peca.cubaEsculpida > 0) {
-        const valor = peca.cubaEsculpida * 630;
+        const valor = peca.cubaEsculpida * precos.cubaEsculpida;
         totalRecortes += valor;
         detalhesRecortes.push({
           tipo: 'Cuba Esculpida',
           peca: nomePeca,
           quantidade: peca.cubaEsculpida,
-          valorUnit: 630,
+          valorUnit: precos.cubaEsculpida,
           valor
         });
       }
       
       if (peca.cooktop && peca.cooktop > 0) {
-        const valor = peca.cooktop * 150;
+        const valor = peca.cooktop * precos.cooktop;
         totalRecortes += valor;
         detalhesRecortes.push({
           tipo: 'Cooktop',
           peca: nomePeca,
           quantidade: peca.cooktop,
-          valorUnit: 150,
+          valorUnit: precos.cooktop,
           valor
         });
       }
       
       if (peca.recorte && peca.recorte > 0) {
-        const valor = peca.recorte * 60;
+        const valor = peca.recorte * precos.recorte;
         totalRecortes += valor;
         detalhesRecortes.push({
           tipo: 'Recorte',
           peca: nomePeca,
           quantidade: peca.recorte,
-          valorUnit: 60,
+          valorUnit: precos.recorte,
           valor
         });
       }
       
       if (peca.pes && peca.pes > 0) {
-        const valor = peca.pes * 200;
+        const valor = peca.pes * precos.pes;
         totalRecortes += valor;
         detalhesRecortes.push({
           tipo: 'Pés',
           peca: nomePeca,
           quantidade: peca.pes,
-          valorUnit: 200,
+          valorUnit: precos.pes,
           valor
         });
       }
