@@ -191,11 +191,12 @@ const SistemaOrcamentoMarmore = () => {
       pdf.setFont('helvetica', 'normal');
       pdf.text(chapa.material?.nome || 'Material', pageW - margin - 45, 17);
 
-      // ---------- ÁREA DE DESENHO ----------
+      // ---------- ÁREA DE DESENHO (com espaço para legenda à esquerda) ----------
+      const legendaW = 58; // largura da coluna de legenda
       const areaTop = headerH + 8;
-      const areaLeft = margin + 35; // margem esquerda maior para cotas
+      const areaLeft = margin + legendaW + 15; // margem para cotas da chapa
       const areaRight = pageW - margin;
-      const areaBottom = pageH - margin - 18; // margem baixo para legenda
+      const areaBottom = pageH - margin - 8;
       const areaW = areaRight - areaLeft;
       const areaH = areaBottom - areaTop;
 
@@ -204,7 +205,7 @@ const SistemaOrcamentoMarmore = () => {
       const chapaH = chapa.material?.altura || 2000;
       const escalaX = areaW / chapaW;
       const escalaY = areaH / chapaH;
-      const escala = Math.min(escalaX, escalaY) * 0.95;
+      const escala = Math.min(escalaX, escalaY) * 0.92;
 
       const desenhoW = chapaW * escala;
       const desenhoH = chapaH * escala;
@@ -259,15 +260,11 @@ const SistemaOrcamentoMarmore = () => {
         pdf.line(desenhoX, desenhoY + i, desenhoX + desenhoW, desenhoY + i);
       }
 
-      // ---------- PEÇAS ----------
+      // ---------- PEÇAS (borda desenhada para DENTRO para não sobrepor vizinhas) ----------
       const cores = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#14b8a6'];
       const legendaItens = [];
-
-      // Calcular tamanhos proporcionais à escala
-      const bordaPeca = Math.max(0.3, Math.min(0.8, escala * 12));
-      const fontNumero = Math.max(6, Math.min(14, escala * 180));
-      const fontDim = Math.max(4, Math.min(7, escala * 90));
-      const fontCota = Math.max(3.5, Math.min(5.5, escala * 70));
+      const bordaW = 0.5; // espessura da borda em mm do PDF
+      const inset = bordaW / 2; // quanto encolher cada lado para borda ficar dentro
 
       chapa.pecas.forEach((peca, pIdx) => {
         const px = desenhoX + peca.posX * escala;
@@ -280,45 +277,30 @@ const SistemaOrcamentoMarmore = () => {
         const g = parseInt(cor.slice(3, 5), 16);
         const b = parseInt(cor.slice(5, 7), 16);
 
-        // Fundo da peça (cor clara - 70% mais claro)
-        pdf.setFillColor(r + (255 - r) * 0.7, g + (255 - g) * 0.7, b + (255 - b) * 0.7);
+        // Preencher a área inteira da peça com cor clara
+        pdf.setFillColor(r + (255 - r) * 0.75, g + (255 - g) * 0.75, b + (255 - b) * 0.75);
+        pdf.rect(px, py, pw, ph, 'F');
+
+        // Borda desenhada PARA DENTRO (inset) — nunca invade o espaçamento
         pdf.setDrawColor(r, g, b);
-        pdf.setLineWidth(bordaPeca);
-        pdf.rect(px, py, pw, ph, 'FD');
+        pdf.setLineWidth(bordaW);
+        pdf.rect(px + inset, py + inset, pw - bordaW, ph - bordaW, 'D');
 
-        // Número da peça (centro) - só se a peça tiver tamanho suficiente
-        if (pw > 4 && ph > 4) {
-          pdf.setFillColor(r, g, b);
+        // Número da peça (centro)
+        if (pw > 3 && ph > 3) {
           pdf.setTextColor(r, g, b);
-          pdf.setFontSize(Math.min(fontNumero, pw * 0.5, ph * 0.4));
+          pdf.setFontSize(Math.min(12, pw * 0.45, ph * 0.35));
           pdf.setFont('helvetica', 'bold');
-          pdf.text(String(pIdx + 1), px + pw / 2, py + ph / 2 - 0.5, { align: 'center' });
+          pdf.text(String(pIdx + 1), px + pw / 2, py + ph / 2 + 0.5, { align: 'center' });
 
-          // Dimensões abaixo do número - só se a peça for grande o suficiente
-          if (pw > 10 && ph > 8) {
-            pdf.setFontSize(Math.min(fontDim, pw * 0.25, ph * 0.18));
+          // Dimensões abaixo do número
+          if (pw > 8 && ph > 7) {
+            const fontDim = Math.min(5.5, pw * 0.2, ph * 0.15);
+            pdf.setFontSize(fontDim);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(40, 40, 40);
             const dim = peca.rotacao === 90 ? peca.altura + 'x' + peca.comprimento : peca.comprimento + 'x' + peca.altura;
-            pdf.text(dim, px + pw / 2, py + ph / 2 + Math.min(4, ph * 0.2), { align: 'center' });
-          }
-        }
-
-        // Cotas externas - só se houver espaço suficiente (espaçamento > 2mm no PDF)
-        const espPdf = 4 * escala; // espaçamento de 4mm real convertido para PDF
-        if (espPdf > 1.5) {
-          pdf.setTextColor(r, g, b);
-          pdf.setFontSize(Math.min(fontCota, espPdf * 1.8));
-          pdf.setFont('helvetica', 'bold');
-          const pecaCompExib = peca.rotacao === 90 ? peca.altura : peca.comprimento;
-          const pecaAltExib = peca.rotacao === 90 ? peca.comprimento : peca.altura;
-          // Cota topo (só se não estiver muito no topo da chapa)
-          if (peca.posY > 8) {
-            pdf.text(pecaCompExib + '', px + pw / 2, py - espPdf * 0.3, { align: 'center' });
-          }
-          // Cota esquerda (só se não estiver muito na esquerda)
-          if (peca.posX > 8) {
-            pdf.text(pecaAltExib + '', px - espPdf * 0.3, py + ph / 2, { angle: 90, align: 'center' });
+            pdf.text(dim, px + pw / 2, py + ph / 2 + Math.min(3.5, ph * 0.18), { align: 'center' });
           }
         }
 
@@ -329,36 +311,58 @@ const SistemaOrcamentoMarmore = () => {
         legendaItens.push({ numero: pIdx + 1, nome, cor, dim: pecaCompExib + 'x' + pecaAltExib, rotado: peca.rotacao === 90 });
       });
 
-      // ---------- LEGENDA (baixo) ----------
-      const legendaY = areaBottom + 4;
-      pdf.setFontSize(7);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(30, 41, 59);
-      pdf.text('LEGENDA:', margin, legendaY);
+      // ---------- LEGENDA (coluna vertical à esquerda) ----------
+      const legendaX = margin;
+      let legendaY = areaTop + 2;
+      const legendaLineH = 10; // altura de cada item
 
-      let legendaX = margin + 22;
+      // Título da legenda
+      pdf.setFillColor(30, 41, 59);
+      pdf.roundedRect(legendaX, legendaY - 4, legendaW, 10, 1, 1, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('LEGENDA', legendaX + legendaW / 2, legendaY + 2, { align: 'center' });
+      legendaY += 12;
+
+      // Fundo da legenda
+      const legendaAltura = Math.min(legendaItens.length * legendaLineH + 6, areaBottom - legendaY);
+      pdf.setFillColor(248, 250, 252);
+      pdf.setDrawColor(200, 210, 220);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(legendaX, legendaY - 4, legendaW, legendaAltura, 1, 1, 'FD');
+
       legendaItens.forEach((item, i) => {
-        const rot = item.rotado ? ' R' : '';
-        const textoLegenda = item.numero + '. ' + item.nome + ' (' + item.dim + rot + ')';
-        const larguraEstimada = textoLegenda.length * 1.5; // Estimativa: 1.5mm por caractere
-        
-        // Se não cabe na linha, quebrar
-        if (legendaX + larguraEstimada > pageW - margin) {
-          legendaX = margin + 22;
-        }
-        
+        if (legendaY + 6 > areaBottom) return; // não ultrapassar a área
+
         const r = parseInt(item.cor.slice(1, 3), 16);
         const g = parseInt(item.cor.slice(3, 5), 16);
         const b = parseInt(item.cor.slice(5, 7), 16);
 
+        // Quadradinho colorido
         pdf.setFillColor(r, g, b);
-        pdf.rect(legendaX, legendaY - 3.5, 4, 4, 'F');
+        pdf.rect(legendaX + 2, legendaY - 2.5, 4, 4, 'F');
 
+        // Número + nome
         pdf.setTextColor(30, 41, 59);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(textoLegenda, legendaX + 5.5, legendaY);
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(item.numero + '.', legendaX + 8, legendaY + 0.5);
 
-        legendaX += larguraEstimada + 12;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6.5);
+        // Truncar nome se muito longo
+        let nomeExib = item.nome;
+        if (nomeExib.length > 18) nomeExib = nomeExib.substring(0, 17) + '…';
+        pdf.text(nomeExib, legendaX + 13, legendaY + 0.5);
+
+        // Dimensões + rotação
+        pdf.setTextColor(100, 110, 120);
+        pdf.setFontSize(5.5);
+        const rot = item.rotado ? ' ↻' : '';
+        pdf.text(item.dim + rot, legendaX + 13, legendaY + 4.5);
+
+        legendaY += legendaLineH;
       });
 
       // ---------- RODAPÉ ----------
@@ -3542,6 +3546,8 @@ const PlanoCorteChapa = ({ chapa, numero, onMoverPeca, onMoverPecaNaChapa, onGir
     }
 
     // Desenhar peças
+    const cores = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#14b8a6'];
+    
     chapa.pecas.forEach((peca, idx) => {
       if (arrastandoPeca?.id === peca.id) return;
 
@@ -3552,21 +3558,21 @@ const PlanoCorteChapa = ({ chapa, numero, onMoverPeca, onMoverPecaNaChapa, onGir
       const w = (peca.rotacao === 90 ? peca.altura : peca.comprimento) * escala;
       const h = (peca.rotacao === 90 ? peca.comprimento : peca.altura) * escala;
 
-      // Área de espaçamento (4mm ao redor)
-      const espacamento = 4 * escala;
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([2, 2]);
-      ctx.strokeRect(x - espacamento, y - espacamento, w + espacamento * 2, h + espacamento * 2);
-      ctx.setLineDash([]);
-
-      // Peça - destacar se selecionada
       const ehSelecionada = pecaSelecionada === peca.id;
-      ctx.fillStyle = ehSelecionada ? '#10b981' : '#3b82f6';
+      const cor = ehSelecionada ? '#10b981' : cores[idx % cores.length];
+      const r = parseInt(cor.slice(1, 3), 16);
+      const g = parseInt(cor.slice(3, 5), 16);
+      const b = parseInt(cor.slice(5, 7), 16);
+
+      // Preencher a peça com cor clara
+      ctx.fillStyle = `rgb(${r + (255-r)*0.7}, ${g + (255-g)*0.7}, ${b + (255-b)*0.7})`;
       ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = ehSelecionada ? '#059669' : '#1e40af';
-      ctx.lineWidth = ehSelecionada ? 3 : 2;
-      ctx.strokeRect(x, y, w, h);
+
+      // Borda desenhada PARA DENTRO (inset de 1px) — nunca sobrepõe vizinhas
+      const bw = ehSelecionada ? 2 : 1.5;
+      ctx.strokeStyle = cor;
+      ctx.lineWidth = bw;
+      ctx.strokeRect(x + bw/2, y + bw/2, w - bw, h - bw);
 
       // Desenhar acabamentos na peça
       if (peca.acabamentos) {
@@ -3628,7 +3634,7 @@ const PlanoCorteChapa = ({ chapa, numero, onMoverPeca, onMoverPecaNaChapa, onGir
       }
 
       // Texto com nome e dimensões (considerando rotação)
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = `rgb(${Math.max(0,r-40)}, ${Math.max(0,g-40)}, ${Math.max(0,b-40)})`;
       ctx.font = 'bold 10px Arial';
       ctx.textAlign = 'center';
       
