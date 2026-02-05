@@ -280,16 +280,11 @@ const SistemaOrcamentoMarmore = () => {
         pdf.setDrawColor(r, g, b);
         pdf.setLineWidth(1.5);
 
-        // Retângulo preenchido
+        // Retângulo preenchido com cor clara (30% da cor original)
+        pdf.setFillColor(r + (255 - r) * 0.7, g + (255 - g) * 0.7, b + (255 - b) * 0.7);
         pdf.rect(px, py, pw, ph, 'FD');
 
-        // Sobrepor fundo semi-transparente branco para o texto ficar legível
-        pdf.setFillColor(255, 255, 255);
-        pdf.setOpacity(0.45);
-        pdf.rect(px, py, pw, ph, 'F');
-        pdf.setOpacity(1);
-
-        // Borda colorida novamente (por cima do overlay)
+        // Borda colorida
         pdf.setDrawColor(r, g, b);
         pdf.setLineWidth(1.5);
         pdf.rect(px, py, pw, ph, 'D');
