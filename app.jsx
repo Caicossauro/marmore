@@ -263,6 +263,12 @@ const SistemaOrcamentoMarmore = () => {
       const cores = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#14b8a6'];
       const legendaItens = [];
 
+      // Calcular tamanhos proporcionais à escala
+      const bordaPeca = Math.max(0.3, Math.min(0.8, escala * 12));
+      const fontNumero = Math.max(6, Math.min(14, escala * 180));
+      const fontDim = Math.max(4, Math.min(7, escala * 90));
+      const fontCota = Math.max(3.5, Math.min(5.5, escala * 70));
+
       chapa.pecas.forEach((peca, pIdx) => {
         const px = desenhoX + peca.posX * escala;
         const py = desenhoY + peca.posY * escala;
@@ -270,60 +276,56 @@ const SistemaOrcamentoMarmore = () => {
         const ph = (peca.rotacao === 90 ? peca.comprimento : peca.altura) * escala;
 
         const cor = cores[pIdx % cores.length];
-        // Converter hex para RGB
         const r = parseInt(cor.slice(1, 3), 16);
         const g = parseInt(cor.slice(3, 5), 16);
         const b = parseInt(cor.slice(5, 7), 16);
 
-        // Fundo da peça (com transparência via alpha)
-        pdf.setFillColor(r, g, b);
-        pdf.setDrawColor(r, g, b);
-        pdf.setLineWidth(1.5);
-
-        // Retângulo preenchido com cor clara (30% da cor original)
+        // Fundo da peça (cor clara - 70% mais claro)
         pdf.setFillColor(r + (255 - r) * 0.7, g + (255 - g) * 0.7, b + (255 - b) * 0.7);
+        pdf.setDrawColor(r, g, b);
+        pdf.setLineWidth(bordaPeca);
         pdf.rect(px, py, pw, ph, 'FD');
 
-        // Borda colorida
-        pdf.setDrawColor(r, g, b);
-        pdf.setLineWidth(1.5);
-        pdf.rect(px, py, pw, ph, 'D');
+        // Número da peça (centro) - só se a peça tiver tamanho suficiente
+        if (pw > 4 && ph > 4) {
+          pdf.setFillColor(r, g, b);
+          pdf.setTextColor(r, g, b);
+          pdf.setFontSize(Math.min(fontNumero, pw * 0.5, ph * 0.4));
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(String(pIdx + 1), px + pw / 2, py + ph / 2 - 0.5, { align: 'center' });
 
-        // Número da peça (grande, no centro)
-        pdf.setFillColor(r, g, b);
-        pdf.setTextColor(r, g, b);
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(String(pIdx + 1), px + pw / 2, py + ph / 2 - 1, { align: 'center' });
+          // Dimensões abaixo do número - só se a peça for grande o suficiente
+          if (pw > 10 && ph > 8) {
+            pdf.setFontSize(Math.min(fontDim, pw * 0.25, ph * 0.18));
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(40, 40, 40);
+            const dim = peca.rotacao === 90 ? peca.altura + 'x' + peca.comprimento : peca.comprimento + 'x' + peca.altura;
+            pdf.text(dim, px + pw / 2, py + ph / 2 + Math.min(4, ph * 0.2), { align: 'center' });
+          }
+        }
 
-        // Dimensões abaixo do número
-        pdf.setFontSize(6.5);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(40, 40, 40);
-        const dim = peca.rotacao === 90 ? peca.altura + 'x' + peca.comprimento : peca.comprimento + 'x' + peca.altura;
-        pdf.text(dim, px + pw / 2, py + ph / 2 + 5, { align: 'center' });
-
-        // Cotas da peça (pequenas, nas bordas)
-        pdf.setTextColor(r, g, b);
-        pdf.setFontSize(5.5);
-        pdf.setFont('helvetica', 'bold');
-        // Cota topo
-        const pecaCompExib = peca.rotacao === 90 ? peca.altura : peca.comprimento;
-        const pecaAltExib = peca.rotacao === 90 ? peca.comprimento : peca.altura;
-        pdf.text(pecaCompExib + '', px + pw / 2, py - 1.5, { align: 'center' });
-        // Cota esquerda (vertical)
-        pdf.text(pecaAltExib + '', px - 1.5, py + ph / 2, { angle: 90, align: 'center' });
-
-        // Espacamento (linha tracejada ao redor)
-        pdf.setDrawColor(200, 180, 50);
-        pdf.setLineWidth(0.4);
-        const esp = 4 * escala;
-        pdf.setLineDash([1.5, 1.5]);
-        pdf.rect(px - esp, py - esp, pw + esp * 2, ph + esp * 2, 'D');
-        pdf.setLineDash([]);
+        // Cotas externas - só se houver espaço suficiente (espaçamento > 2mm no PDF)
+        const espPdf = 4 * escala; // espaçamento de 4mm real convertido para PDF
+        if (espPdf > 1.5) {
+          pdf.setTextColor(r, g, b);
+          pdf.setFontSize(Math.min(fontCota, espPdf * 1.8));
+          pdf.setFont('helvetica', 'bold');
+          const pecaCompExib = peca.rotacao === 90 ? peca.altura : peca.comprimento;
+          const pecaAltExib = peca.rotacao === 90 ? peca.comprimento : peca.altura;
+          // Cota topo (só se não estiver muito no topo da chapa)
+          if (peca.posY > 8) {
+            pdf.text(pecaCompExib + '', px + pw / 2, py - espPdf * 0.3, { align: 'center' });
+          }
+          // Cota esquerda (só se não estiver muito na esquerda)
+          if (peca.posX > 8) {
+            pdf.text(pecaAltExib + '', px - espPdf * 0.3, py + ph / 2, { angle: 90, align: 'center' });
+          }
+        }
 
         // Guardar para legenda
         const nome = peca.nome || ('Peça ' + (pIdx + 1));
+        const pecaCompExib = peca.rotacao === 90 ? peca.altura : peca.comprimento;
+        const pecaAltExib = peca.rotacao === 90 ? peca.comprimento : peca.altura;
         legendaItens.push({ numero: pIdx + 1, nome, cor, dim: pecaCompExib + 'x' + pecaAltExib, rotado: peca.rotacao === 90 });
       });
 
