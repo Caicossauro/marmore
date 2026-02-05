@@ -318,9 +318,9 @@ const SistemaOrcamentoMarmore = () => {
         pdf.setDrawColor(200, 180, 50);
         pdf.setLineWidth(0.4);
         const esp = 4 * escala;
-        pdf.setLineDashPattern({ dash: 1.5, gap: 1.5 });
+        pdf.setLineDash([1.5, 1.5]);
         pdf.rect(px - esp, py - esp, pw + esp * 2, ph + esp * 2, 'D');
-        pdf.setLineDashPattern({});
+        pdf.setLineDash([]);
 
         // Guardar para legenda
         const nome = peca.nome || ('Peça ' + (pIdx + 1));
