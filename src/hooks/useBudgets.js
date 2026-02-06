@@ -159,9 +159,17 @@ export const useBudgets = () => {
   const salvarOrcamentoAtual = () => {
     if (!orcamentoAtual) return;
 
-    setOrcamentos(prev => prev.map(orc =>
-      orc.id === orcamentoAtual.id ? orcamentoAtual : orc
-    ));
+    setOrcamentos(prev => {
+      const existe = prev.find(orc => orc.id === orcamentoAtual.id);
+
+      if (existe) {
+        // Atualizar orçamento existente
+        return prev.map(orc => orc.id === orcamentoAtual.id ? orcamentoAtual : orc);
+      } else {
+        // Adicionar novo orçamento
+        return [...prev, orcamentoAtual];
+      }
+    });
   };
 
   /**
