@@ -4,7 +4,8 @@
       "Bash(git config:*)",
       "Bash(findstr:*)",
       "Bash(npm install)",
-      "Bash(cmd /c \"npm install\")"
+      "Bash(cmd /c \"npm install\")",
+      "Bash(npm run dev:*)"
     ]
   }
 }
