@@ -616,11 +616,139 @@ const SistemaOrcamentoMarmore = () => {
       pecas: todasPecas.filter(p => p.chapaId === chapa.id)
     }));
 
-    setOrcamentoAtual({ 
-      ...orcamentoAtual, 
-      ambientes: ambientesAtualizados, 
-      chapas: chapasAtualizadas 
+    setOrcamentoAtual({
+      ...orcamentoAtual,
+      ambientes: ambientesAtualizados,
+      chapas: chapasAtualizadas
     });
+  };
+
+  // Mover peça dentro da mesma chapa (arraste manual)
+  const moverPecaNaChapa = (pecaId, chapaId, novaX, novaY) => {
+    const ambientesAtualizados = orcamentoAtual.ambientes.map(amb => ({
+      ...amb,
+      pecas: amb.pecas.map(p =>
+        p.id === pecaId ? { ...p, chapaId: chapaId, posX: novaX, posY: novaY } : p
+      )
+    }));
+
+    const todasPecas = ambientesAtualizados.flatMap(amb => amb.pecas);
+    const chapasAtualizadas = orcamentoAtual.chapas.map(chapa => ({
+      ...chapa,
+      pecas: todasPecas.filter(p => p.chapaId === chapa.id)
+    }));
+
+    setOrcamentoAtual({
+      ...orcamentoAtual,
+      ambientes: ambientesAtualizados,
+      chapas: chapasAtualizadas
+    });
+  };
+
+  // Encontrar melhor posição disponível para a peça na chapa
+  const encontrarMelhorPosicao = (peca, chapaDestino) => {
+    const larguraPeca = peca.rotacao === 90 ? peca.altura : peca.comprimento;
+    const alturaPeca = peca.rotacao === 90 ? peca.comprimento : peca.altura;
+    const espacamento = 4;
+
+    const larguraChapa = chapaDestino.material.comprimento;
+    const alturaChapa = chapaDestino.material.altura;
+
+    // Verificar se a peça é maior que a chapa
+    if (larguraPeca + espacamento * 2 > larguraChapa ||
+        alturaPeca + espacamento * 2 > alturaChapa) {
+      return null;
+    }
+
+    // Tentar posições em um grid de 10mm para performance
+    const incremento = 10;
+
+    for (let y = espacamento; y + alturaPeca + espacamento <= alturaChapa; y += incremento) {
+      for (let x = espacamento; x + larguraPeca + espacamento <= larguraChapa; x += incremento) {
+        const sobrepoe = chapaDestino.pecas.some(p => {
+          if (p.id === peca.id) return false;
+
+          const larguraOutra = p.rotacao === 90 ? p.altura : p.comprimento;
+          const alturaOutra = p.rotacao === 90 ? p.comprimento : p.altura;
+
+          const centroNovaX = x + larguraPeca / 2;
+          const centroNovaY = y + alturaPeca / 2;
+          const centroPecaX = p.posX + larguraOutra / 2;
+          const centroPecaY = p.posY + alturaOutra / 2;
+
+          const distanciaX = Math.abs(centroNovaX - centroPecaX);
+          const distanciaY = Math.abs(centroNovaY - centroPecaY);
+
+          const distanciaMinX = (larguraPeca + larguraOutra) / 2 + espacamento;
+          const distanciaMinY = (alturaPeca + alturaOutra) / 2 + espacamento;
+
+          return distanciaX < distanciaMinX && distanciaY < distanciaMinY;
+        });
+
+        if (!sobrepoe) {
+          return { x, y };
+        }
+      }
+    }
+
+    return null;
+  };
+
+  // Mover peça entre chapas
+  const moverPeca = (pecaId, novaChapaId) => {
+    let pecaMovida = null;
+    orcamentoAtual.ambientes.forEach(amb => {
+      const peca = amb.pecas.find(p => p.id === pecaId);
+      if (peca) pecaMovida = peca;
+    });
+
+    if (!pecaMovida) {
+      alert('❌ Erro: Peça não encontrada.');
+      return;
+    }
+
+    const chapaDestino = orcamentoAtual.chapas.find(c => c.id === novaChapaId);
+    if (!chapaDestino) {
+      alert('❌ Erro: Chapa de destino não encontrada.');
+      return;
+    }
+
+    const posicao = encontrarMelhorPosicao(pecaMovida, chapaDestino);
+
+    if (!posicao) {
+      const larguraPeca = pecaMovida.rotacao === 90 ? pecaMovida.altura : pecaMovida.comprimento;
+      const alturaPeca = pecaMovida.rotacao === 90 ? pecaMovida.comprimento : pecaMovida.altura;
+
+      alert(
+        '⚠️ Não foi possível mover a peça!\n\n' +
+        '❌ Não há espaço disponível na chapa de destino.\n\n' +
+        '📏 Dimensões da peça: ' + larguraPeca + ' x ' + alturaPeca + ' mm\n' +
+        '📐 Dimensões da chapa: ' + chapaDestino.material.comprimento + ' x ' + chapaDestino.material.altura + ' mm\n\n' +
+        '💡 Dica: Tente mover outras peças ou use outra chapa.'
+      );
+      return;
+    }
+
+    const ambientesAtualizados = orcamentoAtual.ambientes.map(amb => ({
+      ...amb,
+      pecas: amb.pecas.map(p =>
+        p.id === pecaId ? { ...p, chapaId: novaChapaId, posX: posicao.x, posY: posicao.y } : p
+      )
+    }));
+
+    const todasPecas = ambientesAtualizados.flatMap(amb => amb.pecas);
+    const chapasAtualizadas = orcamentoAtual.chapas.map(chapa => ({
+      ...chapa,
+      pecas: todasPecas.filter(p => p.chapaId === chapa.id)
+    }));
+
+    setOrcamentoAtual({
+      ...orcamentoAtual,
+      ambientes: ambientesAtualizados,
+      chapas: chapasAtualizadas
+    });
+
+    alert('✅ Peça movida com sucesso!\n\n📍 Posição: X=' + Math.round(posicao.x) + 'mm, Y=' + Math.round(posicao.y) + 'mm');
   };
 
   return (
