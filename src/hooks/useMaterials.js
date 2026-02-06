@@ -7,7 +7,7 @@ import { STORAGE_KEYS } from '../constants/config';
  */
 export const useMaterials = () => {
   const [materiais, setMateriais] = useState([
-    { id: 1, nome: 'Mármore Branco Carrara', comprimento: 3000, altura: 2000, custo: 1500, venda: 2000 }
+    { id: 1, nome: 'Mármore Branco Carrara', comprimento: 3000, altura: 2000, custo: 250, venda: 333.33, precoPorMetro: true }
   ]);
   const [materialEditando, setMaterialEditando] = useState(null);
   const [novoMaterial, setNovoMaterial] = useState({
@@ -56,7 +56,8 @@ export const useMaterials = () => {
       comprimento: parseFloat(material.comprimento) || 0,
       altura: parseFloat(material.altura) || 0,
       custo: parseFloat(material.custo) || 0,
-      venda: parseFloat(material.venda) || parseFloat(material.custo) || 0
+      venda: parseFloat(material.venda) || parseFloat(material.custo) || 0,
+      precoPorMetro: true  // Nova flag indicando precificação por m²
     };
 
     setMateriais(prev => [...prev, materialComId]);

@@ -128,8 +128,11 @@ export const HomePage = ({
                 <h3 className="font-bold text-lg mb-2 text-slate-800">{material.nome}</h3>
                 <div className="space-y-1 text-sm text-slate-600 mb-3">
                   <p>📏 Dimensões: {material.comprimento}mm x {material.altura}mm</p>
-                  <p>💰 Custo: R$ {material.custo.toFixed(2)}</p>
-                  <p>💵 Venda: R$ {material.venda.toFixed(2)}</p>
+                  <p>💰 Custo: R$ {material.custo.toFixed(2)}/m²</p>
+                  <p>💵 Venda: R$ {material.venda.toFixed(2)}/m²</p>
+                  <p className="text-xs text-slate-500">
+                    Área da chapa: {(material.comprimento * material.altura / 1000000).toFixed(2)}m²
+                  </p>
                 </div>
                 <button
                   onClick={() => onNavigateMaterial('editar', material.id)}

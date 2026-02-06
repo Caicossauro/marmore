@@ -32,7 +32,10 @@ export const ResumoOrcamento = ({ orcamentoAtual, materiais, precos }) => {
             <div key={materialId} className="flex justify-between text-sm text-slate-700 pl-4 py-2 hover:bg-slate-50 rounded">
               <span className="flex-1">
                 <span className="font-medium">{material?.nome}</span>
-                <span className="text-slate-500 ml-2">({qtd}x chapas de {material?.comprimento}x{material?.altura}mm)</span>
+                <span className="text-slate-500 ml-2">
+                  ({qtd}x chapas • {material?.comprimento}x{material?.altura}mm •
+                  {((material?.comprimento * material?.altura / 1000000) * qtd).toFixed(2)}m² total)
+                </span>
               </span>
               <div className="flex gap-6 ml-4">
                 <span className="text-orange-600 w-24 text-right">{formatBRL(custoParcial)}</span>
@@ -47,47 +50,94 @@ export const ResumoOrcamento = ({ orcamentoAtual, materiais, precos }) => {
             <span className="font-semibold text-blue-600">{formatBRL(orcamento.margemChapas)} ({((orcamento.margemChapas / orcamento.vendaChapas) * 100).toFixed(1)}%)</span>
           </div>
         )}
+
+        {/* Detalhamento por Chapa - NOVO */}
+        {orcamento.detalhesChapas && orcamento.detalhesChapas.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <h4 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+              📊 Aproveitamento por Chapa
+              <span className="text-xs text-slate-500 font-normal">(peças = preço venda, sobra = preço custo)</span>
+            </h4>
+            {orcamento.detalhesChapas.map((detalhe, idx) => (
+              <div key={idx} className="bg-slate-50 rounded-lg p-3 mb-2 text-sm">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="font-medium text-slate-800">
+                    Chapa {idx + 1} - {detalhe.materialNome}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${
+                    detalhe.percentualAproveitamento >= 80 ? 'bg-green-100 text-green-800' :
+                    detalhe.percentualAproveitamento >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {detalhe.percentualAproveitamento.toFixed(1)}% aproveitamento
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
+                  <div>📏 Área total: <strong>{detalhe.areaTotal.toFixed(2)}m²</strong></div>
+                  <div>✂️ Área peças: <strong>{detalhe.areaPecas.toFixed(2)}m²</strong></div>
+                  <div>🔲 Área sobra: <strong>{detalhe.areaSobra.toFixed(2)}m²</strong></div>
+                  <div>💵 Venda peças: <strong className="text-green-700">{formatBRL(detalhe.vendaPecas)}</strong></div>
+                  <div>💰 Custo sobra: <strong className="text-orange-700">{formatBRL(detalhe.custoSobra)}</strong></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Resumo de Metragem - NOVO */}
+        {orcamento.detalhesChapas && orcamento.detalhesChapas.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <h4 className="font-semibold text-slate-700 mb-3">📐 Resumo de Metragem</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                <div className="text-xs text-green-700 font-medium mb-1">Peças Cobradas</div>
+                <div className="text-xl font-bold text-green-800">
+                  {orcamento.detalhesChapas.reduce((sum, d) => sum + d.areaPecas, 0).toFixed(2)}m²
+                </div>
+                <div className="text-xs text-green-600 mt-1">
+                  {formatBRL(orcamento.detalhesChapas.reduce((sum, d) => sum + d.vendaPecas, 0))}
+                </div>
+              </div>
+              <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+                <div className="text-xs text-orange-700 font-medium mb-1">Sobra Cobrada</div>
+                <div className="text-xl font-bold text-orange-800">
+                  {orcamento.detalhesChapas.reduce((sum, d) => sum + d.areaSobra, 0).toFixed(2)}m²
+                </div>
+                <div className="text-xs text-orange-600 mt-1">
+                  {formatBRL(orcamento.detalhesChapas.reduce((sum, d) => sum + d.custoSobra, 0))} (preço custo)
+                </div>
+              </div>
+              <div className="bg-slate-100 rounded-lg p-3 border border-slate-300">
+                <div className="text-xs text-slate-700 font-medium mb-1">Total Geral</div>
+                <div className="text-xl font-bold text-slate-800">
+                  {orcamento.detalhesChapas.reduce((sum, d) => sum + d.areaTotal, 0).toFixed(2)}m²
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {((orcamento.detalhesChapas.reduce((sum, d) => sum + d.areaPecas, 0) / orcamento.detalhesChapas.reduce((sum, d) => sum + d.areaTotal, 0)) * 100).toFixed(1)}% aproveitamento
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Acabamentos Detalhados */}
-      {orcamento.detalhesAcabamentos.length > 0 && (
-        <div className="mb-6">
-          <div className="flex justify-between py-2 border-b-2 border-gray-300 mb-3">
-            <span className="font-bold text-lg">Acabamentos</span>
-            <span className="font-bold text-lg">{formatBRL(orcamento.acabamentos)}</span>
+      {/* Resumo Simplificado de Acabamentos e Recortes */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {orcamento.acabamentos > 0 && (
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <div className="text-sm text-blue-700 font-medium mb-1">Total Acabamentos</div>
+            <div className="text-2xl font-bold text-blue-800">{formatBRL(orcamento.acabamentos)}</div>
+            <div className="text-xs text-blue-600 mt-1">Ver detalhes em cada peça</div>
           </div>
-          {orcamento.detalhesAcabamentos.map((item, idx) => (
-            <div key={idx} className="flex justify-between text-sm text-gray-700 pl-4 py-1 border-b border-gray-100">
-              <div>
-                <span className="font-medium">{item.tipo}</span>
-                <span className="text-gray-500 ml-2">({item.medida})</span>
-                <div className="text-xs text-gray-500">{item.peca}</div>
-              </div>
-              <span>{formatBRL(item.valor)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Recortes Detalhados */}
-      {orcamento.detalhesRecortes.length > 0 && (
-        <div className="mb-6">
-          <div className="flex justify-between py-2 border-b-2 border-gray-300 mb-3">
-            <span className="font-bold text-lg">Recortes</span>
-            <span className="font-bold text-lg">{formatBRL(orcamento.recortes)}</span>
+        )}
+        {orcamento.recortes > 0 && (
+          <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="text-sm text-purple-700 font-medium mb-1">Total Recortes</div>
+            <div className="text-2xl font-bold text-purple-800">{formatBRL(orcamento.recortes)}</div>
+            <div className="text-xs text-purple-600 mt-1">Ver detalhes em cada peça</div>
           </div>
-          {orcamento.detalhesRecortes.map((item, idx) => (
-            <div key={idx} className="flex justify-between text-sm text-gray-700 pl-4 py-1 border-b border-gray-100">
-              <div>
-                <span className="font-medium">{item.tipo}</span>
-                <span className="text-gray-500 ml-2">({item.quantidade}x - {formatBRL(item.valorUnit)} cada)</span>
-                <div className="text-xs text-gray-500">{item.peca}</div>
-              </div>
-              <span>{formatBRL(item.valor)}</span>
-            </div>
-          ))}
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Total Geral - CUSTO vs VENDA */}
       <div className="mt-6 space-y-3">

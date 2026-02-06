@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Edit2, Trash2 } from '../../constants/icons';
 import { PreviewAcabamentos } from '../preview/PreviewAcabamentos';
+import { calcularCustosPeca } from '../../utils/calculations';
+import { formatBRL } from '../../utils/formatters';
 
 export const AmbienteCard = ({ ambiente, materiais, precos, onAdicionarPeca, onExcluirPeca, onVisualizarPeca, onPedirConfirmacaoExclusao }) => {
   const [expandido, setExpandido] = useState(false);
@@ -41,6 +43,7 @@ export const AmbienteCard = ({ ambiente, materiais, precos, onAdicionarPeca, onE
           {/* Lista de Peças */}
           {ambiente.pecas.map(peca => {
             const material = materiais.find(m => m.id === peca.materialId);
+            const custosPeca = calcularCustosPeca(peca, material, precos);
             return (
               <div key={peca.id} className="bg-gray-50 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-all relative" style={{ zIndex: 1 }}>
                 {/* Botões de Ação - ABSOLUTOS NO CANTO */}
@@ -135,6 +138,69 @@ export const AmbienteCard = ({ ambiente, materiais, precos, onAdicionarPeca, onE
                         })}
                       </div>
                     )}
+
+                    {/* Custos Detalhados da Peça */}
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">Área:</span>
+                          <span className="font-semibold text-gray-800 ml-1">{custosPeca.area.toFixed(2)}m²</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Material:</span>
+                          <span className="font-semibold text-green-700 ml-1">{formatBRL(custosPeca.custoMaterial)}</span>
+                        </div>
+                        {custosPeca.acabamentos > 0 && (
+                          <div>
+                            <span className="text-gray-500">Acabamentos:</span>
+                            <span className="font-semibold text-blue-700 ml-1">{formatBRL(custosPeca.acabamentos)}</span>
+                          </div>
+                        )}
+                        {custosPeca.recortes > 0 && (
+                          <div>
+                            <span className="text-gray-500">Recortes:</span>
+                            <span className="font-semibold text-purple-700 ml-1">{formatBRL(custosPeca.recortes)}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-gray-300 flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-700">Total da Peça:</span>
+                        <span className="text-sm font-bold text-green-600">{formatBRL(custosPeca.total)}</span>
+                      </div>
+
+                      {/* Detalhes expandíveis de acabamentos e recortes */}
+                      {(custosPeca.detalhesAcabamentos.length > 0 || custosPeca.detalhesRecortes.length > 0) && (
+                        <details className="mt-2">
+                          <summary className="text-xs text-blue-600 cursor-pointer hover:text-blue-800">
+                            Ver detalhes dos custos
+                          </summary>
+                          <div className="mt-2 space-y-1 pl-2 border-l-2 border-blue-200">
+                            {custosPeca.detalhesAcabamentos.length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-gray-700">Acabamentos:</p>
+                                {custosPeca.detalhesAcabamentos.map((detalhe, idx) => (
+                                  <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                    <span>• {detalhe.tipo.charAt(0).toUpperCase() + detalhe.tipo.slice(1)} ({detalhe.metros}m)</span>
+                                    <span className="font-medium">{formatBRL(detalhe.valor)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {custosPeca.detalhesRecortes.length > 0 && (
+                              <div className="mt-1">
+                                <p className="text-xs font-semibold text-gray-700">Recortes:</p>
+                                {custosPeca.detalhesRecortes.map((detalhe, idx) => (
+                                  <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                    <span>• {detalhe.tipo} ({detalhe.quantidade}x)</span>
+                                    <span className="font-medium">{formatBRL(detalhe.valor)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

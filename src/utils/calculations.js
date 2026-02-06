@@ -1,6 +1,107 @@
 import { ESPACAMENTO_CHAPAS } from '../constants/config';
 
 /**
+ * Converte área de mm² para m²
+ */
+export const mm2ToM2 = (areaMm2) => {
+  return areaMm2 / 1000000;
+};
+
+/**
+ * Calcula área em m² a partir de dimensões em mm
+ */
+export const calcularAreaM2 = (comprimentoMm, alturaMm) => {
+  return mm2ToM2(comprimentoMm * alturaMm);
+};
+
+/**
+ * Converte preço por chapa para preço por m²
+ */
+export const converterPrecoParaM2 = (precoChapa, comprimentoMm, alturaMm) => {
+  const areaM2 = calcularAreaM2(comprimentoMm, alturaMm);
+  return precoChapa / areaM2;
+};
+
+/**
+ * Calcula os custos detalhados de uma única peça
+ */
+export const calcularCustosPeca = (peca, material, precos) => {
+  if (!peca || !material) return { area: 0, custoMaterial: 0, acabamentos: 0, recortes: 0, total: 0, detalhesAcabamentos: [], detalhesRecortes: [] };
+
+  const largura = peca.rotacao === 90 ? peca.altura : peca.comprimento;
+  const altura = peca.rotacao === 90 ? peca.comprimento : peca.altura;
+  const area = calcularAreaM2(largura, altura);
+
+  // Custo do material (área × preço de venda)
+  const custoMaterial = area * (material.venda || material.custo);
+
+  // Calcular acabamentos
+  let totalAcabamentos = 0;
+  const detalhesAcabamentos = [];
+
+  if (peca.acabamentos) {
+    ['esquadria', 'boleado', 'polimento', 'canal'].forEach(tipo => {
+      const acab = peca.acabamentos[tipo];
+      if (acab && acab.ativo) {
+        let totalMm = 0;
+        const lados = acab.lados;
+        if (lados.superior) totalMm += largura;
+        if (lados.inferior) totalMm += largura;
+        if (lados.esquerda) totalMm += altura;
+        if (lados.direita) totalMm += altura;
+
+        if (totalMm > 0) {
+          const metros = totalMm / 1000;
+          const valor = metros * precos[tipo];
+          totalAcabamentos += valor;
+          detalhesAcabamentos.push({ tipo, metros: metros.toFixed(2), valor });
+        }
+      }
+    });
+  }
+
+  // Calcular recortes
+  let totalRecortes = 0;
+  const detalhesRecortes = [];
+
+  if (peca.cuba && peca.cuba > 0) {
+    const valor = peca.cuba * precos.pia;
+    totalRecortes += valor;
+    detalhesRecortes.push({ tipo: 'Cuba', quantidade: peca.cuba, valor });
+  }
+  if (peca.cubaEsculpida && peca.cubaEsculpida > 0) {
+    const valor = peca.cubaEsculpida * precos.cubaEsculpida;
+    totalRecortes += valor;
+    detalhesRecortes.push({ tipo: 'Cuba Esculpida', quantidade: peca.cubaEsculpida, valor });
+  }
+  if (peca.cooktop && peca.cooktop > 0) {
+    const valor = peca.cooktop * precos.cooktop;
+    totalRecortes += valor;
+    detalhesRecortes.push({ tipo: 'Cooktop', quantidade: peca.cooktop, valor });
+  }
+  if (peca.recorte && peca.recorte > 0) {
+    const valor = peca.recorte * precos.recorte;
+    totalRecortes += valor;
+    detalhesRecortes.push({ tipo: 'Recorte', quantidade: peca.recorte, valor });
+  }
+  if (peca.pes && peca.pes > 0) {
+    const valor = peca.pes * precos.pes;
+    totalRecortes += valor;
+    detalhesRecortes.push({ tipo: 'Pés', quantidade: peca.pes, valor });
+  }
+
+  return {
+    area,
+    custoMaterial,
+    acabamentos: totalAcabamentos,
+    recortes: totalRecortes,
+    total: custoMaterial + totalAcabamentos + totalRecortes,
+    detalhesAcabamentos,
+    detalhesRecortes
+  };
+};
+
+/**
  * Organiza todas as peças de um orçamento em chapas de material
  * Retorna o orçamento atualizado com chapas e peças posicionadas
  */
@@ -126,24 +227,62 @@ export const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais, precos) 
     detalhesRecortes: []
   };
 
+  // NOVA LÓGICA: Cálculo por m²
   let custoChapas = 0;
   let vendaChapas = 0;
   const chapasPorMaterial = {};
+  const detalhesChapas = [];
 
-  // Contar chapas por material
   orcamentoAtual.chapas.forEach(chapa => {
+    const material = materiais.find(m => m.id === chapa.materialId);
+    if (!material) return;
+
+    // Contar chapas por material (para exibição)
     const key = chapa.materialId;
     chapasPorMaterial[key] = (chapasPorMaterial[key] || 0) + 1;
-  });
 
-  // Calcular custo e venda das chapas
-  Object.keys(chapasPorMaterial).forEach(materialId => {
-    const material = materiais.find(m => m.id === parseInt(materialId));
-    if (material) {
-      const quantidade = chapasPorMaterial[materialId];
-      custoChapas += material.custo * quantidade;
-      vendaChapas += (material.venda || material.custo) * quantidade;
-    }
+    // Calcular área total da chapa em m²
+    const areaTotalChapa = calcularAreaM2(material.comprimento, material.altura);
+
+    // Calcular área total das peças nesta chapa
+    let areaPecasM2 = 0;
+    chapa.pecas.forEach(peca => {
+      const larguraPeca = peca.rotacao === 90 ? peca.altura : peca.comprimento;
+      const alturaPeca = peca.rotacao === 90 ? peca.comprimento : peca.altura;
+      areaPecasM2 += calcularAreaM2(larguraPeca, alturaPeca);
+    });
+
+    // Calcular área da sobra
+    const areaSobraM2 = areaTotalChapa - areaPecasM2;
+
+    // Cobrar peças pelo preço de VENDA por m²
+    const vendaPecas = areaPecasM2 * (material.venda || material.custo);
+
+    // Cobrar sobra pelo preço de CUSTO por m²
+    const custoSobra = areaSobraM2 * material.custo;
+
+    // Adicionar custo base das peças (necessário para cálculo de margem)
+    const custoPecas = areaPecasM2 * material.custo;
+
+    // Acumular totais
+    // Cliente paga: peças (preço venda) + sobra (preço custo)
+    vendaChapas += vendaPecas + custoSobra;
+    // Custo real: peças (preço custo) + sobra (preço custo)
+    custoChapas += custoPecas + custoSobra;
+
+    // Guardar detalhes para exibição
+    detalhesChapas.push({
+      chapaId: chapa.id,
+      materialId: material.id,
+      materialNome: material.nome,
+      areaTotal: areaTotalChapa,
+      areaPecas: areaPecasM2,
+      areaSobra: areaSobraM2,
+      custoSobra: custoSobra,
+      custoPecas: custoPecas,
+      vendaPecas: vendaPecas,
+      percentualAproveitamento: (areaPecasM2 / areaTotalChapa) * 100
+    });
   });
 
   let totalAcabamentos = 0;
@@ -323,6 +462,7 @@ export const calcularOrcamentoComDetalhes = (orcamentoAtual, materiais, precos) 
     vendaTotal,
     margemTotal,
     chapasPorMaterial,
+    detalhesChapas,
     detalhesAcabamentos,
     detalhesRecortes,
     // Manter compatibilidade com código antigo

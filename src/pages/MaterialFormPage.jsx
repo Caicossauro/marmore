@@ -84,35 +84,121 @@ export const MaterialFormPage = ({
           {/* Preços */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                Preço de Custo (R$) *
+              <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                Preço de Custo por m² (R$) *
+                <span className="text-xs text-slate-500 font-normal">
+                  (1m² = 1.000.000mm²)
+                </span>
               </label>
               <input
                 type="number"
                 value={novoMaterial.custo}
                 onChange={(e) => onCampoChange('custo', e.target.value)}
-                placeholder="1500.00"
+                placeholder="250.00"
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
                 min="0"
                 step="0.01"
               />
+              {/* Mostrar equivalente por chapa */}
+              {novoMaterial.custo && novoMaterial.comprimento && novoMaterial.altura && (
+                <p className="text-sm text-slate-600 mt-1">
+                  ≈ R$ {(
+                    parseFloat(novoMaterial.custo) *
+                    (parseFloat(novoMaterial.comprimento) * parseFloat(novoMaterial.altura) / 1000000)
+                  ).toFixed(2)} por chapa completa
+                </p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                Preço de Venda (R$) *
+              <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                Preço de Venda por m² (R$) *
+                <span className="text-xs text-slate-500 font-normal">
+                  (cobrado nas peças)
+                </span>
               </label>
               <input
                 type="number"
                 value={novoMaterial.venda}
                 onChange={(e) => onCampoChange('venda', e.target.value)}
-                placeholder="2000.00"
+                placeholder="333.33"
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
                 min="0"
                 step="0.01"
               />
+              {/* Mostrar equivalente por chapa */}
+              {novoMaterial.venda && novoMaterial.comprimento && novoMaterial.altura && (
+                <p className="text-sm text-slate-600 mt-1">
+                  ≈ R$ {(
+                    parseFloat(novoMaterial.venda) *
+                    (parseFloat(novoMaterial.comprimento) * parseFloat(novoMaterial.altura) / 1000000)
+                  ).toFixed(2)} por chapa completa
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Calculadora de Conversão */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <h4 className="font-bold text-blue-900 mb-2">💡 Calculadora de Conversão</h4>
+            <p className="text-sm text-blue-800 mb-3">
+              Se você sabe o preço por chapa completa, digite aqui para converter:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Custo */}
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">
+                  Preço de Custo da Chapa Completa (R$)
+                </label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-blue-300 rounded bg-white"
+                  placeholder="1500.00"
+                  step="0.01"
+                  onChange={(e) => {
+                    const precoChapa = parseFloat(e.target.value);
+                    const comp = parseFloat(novoMaterial.comprimento);
+                    const alt = parseFloat(novoMaterial.altura);
+                    if (precoChapa && comp && alt) {
+                      const areaM2 = (comp * alt) / 1000000;
+                      const precoM2 = (precoChapa / areaM2).toFixed(2);
+                      onCampoChange('custo', precoM2);
+                    }
+                  }}
+                />
+                <div className="mt-1 text-xs text-blue-700">
+                  → Preço por m²: <strong>R$ {novoMaterial.custo || '0.00'}</strong>
+                </div>
+              </div>
+
+              {/* Venda */}
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">
+                  Preço de Venda da Chapa Completa (R$)
+                </label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-blue-300 rounded bg-white"
+                  placeholder="2000.00"
+                  step="0.01"
+                  onChange={(e) => {
+                    const precoChapa = parseFloat(e.target.value);
+                    const comp = parseFloat(novoMaterial.comprimento);
+                    const alt = parseFloat(novoMaterial.altura);
+                    if (precoChapa && comp && alt) {
+                      const areaM2 = (comp * alt) / 1000000;
+                      const precoM2 = (precoChapa / areaM2).toFixed(2);
+                      onCampoChange('venda', precoM2);
+                    }
+                  }}
+                />
+                <div className="mt-1 text-xs text-blue-700">
+                  → Preço por m²: <strong>R$ {novoMaterial.venda || '0.00'}</strong>
+                </div>
+              </div>
             </div>
           </div>
 
