@@ -5,6 +5,10 @@ import { gerarPDFPlanoCorte } from './utils/pdf/planoCorte';
 import { gerarEtiquetasPDF } from './utils/pdf/etiquetas';
 import { ESPACAMENTO_CHAPAS } from './constants/config';
 import { usePrecos } from './hooks/usePrecos';
+import { useMaterials } from './hooks/useMaterials';
+import { useBudgets } from './hooks/useBudgets';
+import { HomePage } from './pages/HomePage';
+import { MaterialFormPage } from './pages/MaterialFormPage';
 
 // Ícones (emoji fallback)
 const PlusCircle = () => <span>➕</span>;
@@ -21,19 +25,12 @@ const Printer = () => <span>🖨️</span>;
 
 
 const SistemaOrcamentoMarmore = () => {
-  // Hook de preços
+  // Hooks customizados
   const { precos, precosSalvos, mostrarPainelPrecos, atualizarPreco, salvarPrecos, setMostrarPainelPrecos } = usePrecos();
+  const { materiais, materialEditando, novoMaterial, setMateriais, setMaterialEditando, setNovoMaterial, adicionarMaterial, excluirMaterial } = useMaterials();
+  const { orcamentos, orcamentoAtual, mostrarModalNovoOrcamento, nomeNovoOrcamento, setOrcamentos, setOrcamentoAtual, setNomeNovoOrcamento, abrirModalNovoOrcamento, fecharModalNovoOrcamento, criarOrcamento, adicionarAmbiente } = useBudgets();
 
-  const [materiais, setMateriais] = useState([
-    { id: 1, nome: 'Mármore Branco Carrara', comprimento: 3000, altura: 2000, custo: 1500, venda: 2000 }
-  ]);
-  const [orcamentos, setOrcamentos] = useState([]);
-  const [orcamentoAtual, setOrcamentoAtual] = useState(null);
   const [tela, setTela] = useState('lista'); // lista, novo-material, orcamento, plano-corte, editar-material
-  const [novoMaterial, setNovoMaterial] = useState({ nome: '', comprimento: '', altura: '', custo: '', venda: '' });
-  const [materialEditando, setMaterialEditando] = useState(null);
-  const [mostrarModalNovoOrcamento, setMostrarModalNovoOrcamento] = useState(false);
-  const [nomeNovoOrcamento, setNomeNovoOrcamento] = useState('');
   const [ambienteSelecionado, setAmbienteSelecionado] = useState(null);
   const [editandoPeca, setEditandoPeca] = useState(null);
   const [mostrandoDetalhePeca, setMostrandoDetalhePeca] = useState(null);
@@ -329,33 +326,12 @@ const SistemaOrcamentoMarmore = () => {
     alert('✅ PDF do Plano de Corte gerado!\n' + orcamentoAtual.chapas.length + ' chapa(s)');
   };
 
-  // Criar novo orçamento
-  const criarOrcamento = () => {
-    setNomeNovoOrcamento(`Orçamento ${new Date().toLocaleDateString()}`);
-    setMostrarModalNovoOrcamento(true);
-  };
-
+  // Wrapper para criar orçamento e navegar para tela de orçamento
   const confirmarCriacaoOrcamento = () => {
-    const novoOrc = {
-      id: Date.now(),
-      nome: nomeNovoOrcamento.trim() || `Orçamento ${new Date().toLocaleDateString()}`,
-      data: new Date().toLocaleDateString(),
-      ambientes: [],
-      chapas: []
-    };
-    setOrcamentoAtual(novoOrc);
-    setTela('orcamento');
-    setMostrarModalNovoOrcamento(false);
-    setNomeNovoOrcamento('');
-  };
-
-  // Adicionar ambiente
-  const adicionarAmbiente = (nome) => {
-    if (!nome.trim()) return;
-    setOrcamentoAtual({
-      ...orcamentoAtual,
-      ambientes: [...orcamentoAtual.ambientes, { id: Date.now(), nome, pecas: [] }]
-    });
+    const novoOrc = criarOrcamento(nomeNovoOrcamento);
+    if (novoOrc) {
+      setTela('orcamento');
+    }
   };
 
   // Adicionar peça
@@ -1125,7 +1101,7 @@ const SistemaOrcamentoMarmore = () => {
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => {
-                    setMostrarModalNovoOrcamento(false);
+                    fecharModalNovoOrcamento();
                     setNomeNovoOrcamento('');
                   }}
                   className="px-6 py-3 border-2 border-slate-200 rounded-xl hover:bg-slate-50 transition-all duration-200 font-medium text-slate-700"
@@ -1831,7 +1807,7 @@ const SistemaOrcamentoMarmore = () => {
                     <h2 className="text-xl font-bold text-slate-800">Orçamentos</h2>
                   </div>
                   <button
-                    onClick={criarOrcamento}
+                    onClick={abrirModalNovoOrcamento}
                     className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2.5 rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
                   >
                     <PlusCircle size={18} />
